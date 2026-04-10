@@ -2,14 +2,18 @@ from books import Book
 from exception import BookRemovalError, BookRetrivalError, searchError
 from validator import checkAuthor, checkTitle, checkDates
 from datetime import date
+from db import *
+
 class library():
     totalBooks = 0
     def __init__(self):
-        self.book_list = []
+        self.connection = get_connection()
 
     def addbook(self, book: Book):
-        self.book_list.append(book)
-        library.totalBooks += 1
+        cursor = self.connection.cursor()
+        cursor.execute("insert into Books (Serial_number, Title, Author, Publishing_date, Date_added, is_available ) values (?,?,?,?,?,?)", (book.serialNumber, book.title, book.author, str(book.publishing_date), str(date.today()),1))
+        self.connection.commit()
+        cursor.close()
         print("Book added")
 
     def removeBook_index(self, index: int):
@@ -69,7 +73,7 @@ class library():
 
         if len(result) ==0:
             raise searchError("No book retirieved")
-        return result
+        return result 
 
     def search_by_year(self, year: int):
         result = []
