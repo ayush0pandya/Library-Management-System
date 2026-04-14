@@ -8,28 +8,10 @@ class library():
     totalBooks = 0
     def __init__(self):
         self.connection = get_connection()
-
-    def addbook(self, book: Book):
-        cursor = self.connection.cursor()
-        cursor.execute("insert into Books (Serial_number, Title, Author, Publishing_date, Date_added, is_available ) values (?,?,?,?,?,?)", (book.serialNumber, book.title, book.author, str(book.publishing_date), str(date.today()),1))
-        self.connection.commit()
-        cursor.close()
-        print("Book added")
-
-    def removeBook_index(self, index: int):
-        if len(self.book_list) == 0:
-            raise BookRemovalError("No books present to remove")
-        elif index >= len(self.book_list):
-            raise BookRemovalError("Trying to remove book which is out of scope")
-        else:
-            print("Book present")
-            library.totalBooks -= 1
-            print("Book removed")
-            return self.book_list.pop(index)
             
-    
+  
     def removeBook_Book(self, book: Book):
-        if len(self.book_list) == 0:
+        '''if len(self.book_list) == 0:
             raise BookRemovalError("No book to remove, library is empty")
         elif book in self.book_list:
             print("Book present")
@@ -37,7 +19,22 @@ class library():
             library.totalBooks -=1
             print("Book removed")
         else:
-            raise BookRemovalError("Sorry but the book was not present in the library")
+            raise BookRemovalError("Sorry but the book was not present in the library")'''
+        
+        cursor = self.connection.cursor()
+        cursor.execute("select * from Books where Title = ? AND Serial_number = ?", (book.title, book.serialNumber))
+        temp_Book = cursor.fetchone()     
+        if temp_Book is None:
+            raise BookRemovalError("Sorry but the book was never present in the library")
+        elif temp_Book[6] == 0:
+            raise BookRemovalError("Sorry but the book is not present in the library")
+        else:
+            cursor.execute("update Books set is_present = 0 where Title = ? AND Serial_number = ?", (book.title, book.serialNumber))
+        self.connection.commit()
+        self.connection.close()
+           
+        
+        
 
 
         
