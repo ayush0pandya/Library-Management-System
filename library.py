@@ -53,4 +53,6 @@ class library():
         return result
 
     def __iter__(self):
-        return iter(self.book_list)
+        cursor = self.connection.cursor()
+        cursor.execute("select * from Books where is_present = 1")
+        return iter(cursor.fetchall())
