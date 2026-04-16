@@ -1,11 +1,9 @@
 from books import Book
 from exception import BookRemovalError, BookRetrivalError
-from validator import checkAuthor, checkTitle, checkDates
 from datetime import date
 from db import *
 
 class library():
-    totalBooks = 0
     def __init__(self):
         self.connection = get_connection()
             
@@ -51,6 +49,13 @@ class library():
             raise BookRetrivalError(f"The book by the Author {author} can not be found")
         cursor.close()
         return result
+
+    def addbook(self, book : Book):
+        cursor = self.connection.cursor()
+        cursor.execute("insert into Books (Serial_number, Title, Author, Publishing_date, Date_added, is_available, is_present) values (?,?,?,?,?,?,?)", (book.serialNumber, book.title, book.author, str(book.publishing_date), str(date.today()), 1, 1))
+        self.connection.commit()
+        cursor.close()
+
 
     def __iter__(self):
         cursor = self.connection.cursor()
