@@ -1,5 +1,5 @@
 from books import Book
-from exception import BookRemovalError, BookRetrivalError, searchError
+from exception import BookRemovalError, BookRetrivalError
 from validator import checkAuthor, checkTitle, checkDates
 from datetime import date
 from db import *
@@ -11,15 +11,6 @@ class library():
             
   
     def removeBook_Book(self, book: Book):
-        '''if len(self.book_list) == 0:
-            raise BookRemovalError("No book to remove, library is empty")
-        elif book in self.book_list:
-            print("Book present")
-            self.book_list.remove(book)
-            library.totalBooks -=1
-            print("Book removed")
-        else:
-            raise BookRemovalError("Sorry but the book was not present in the library")'''
         
         cursor = self.connection.cursor()
         cursor.execute("select * from Books where Title = ? AND Serial_number = ?", (book.title, book.serialNumber))
@@ -31,55 +22,34 @@ class library():
         else:
             cursor.execute("update Books set is_present = 0 where Title = ? AND Serial_number = ?", (book.title, book.serialNumber))
         self.connection.commit()
-        self.connection.close()
-           
-        
-        
-
+        cursor.close()
 
         
-    def getBook(self, index):
-        if len(self.book_list) == 0:
-            raise BookRetrivalError("No books present in the library")
-        elif index >= len(self.book_list) or index < 0:
-            raise BookRetrivalError("Trying to retrieve book info which is out of scope")
-        else:
-            return self.book_list[index]      
+    def getBook_by_serialNumber(self, serial_no: int):
+        cursor = self.connection.cursor()
+        cursor.execute("select * from Books where Serial_number = ?", (serial_no,))
+        result = cursor.fetchone()
+        if result is None:
+            raise BookRetrivalError(f"The book with the serial number {serial_no} can not be found")
+        cursor.close()
+        return result
     
-    def search_by_title(self, name: str):
-        checkTitle(name)
-        tempname = name.lower()
-        result =[]
-        for x in self.book_list:
-            title = x.title.lower()
-            if title == tempname:
-                result.append(x)
-
-        if len(result) == 0:
-           raise searchError("No book retirieved")
+    def getBook_by_Title(self, title: str):
+        cursor = self.connection.cursor()
+        cursor.execute("select * from Books where Title = ?", (title,))
+        result = cursor.fetchall()
+        if not result:
+            raise BookRetrivalError(f"The book with the Title {title} can not be found")
+        cursor.close()
         return result
 
-    def search_by_author(self, name: str):
-        checkAuthor(name)
-        tempname = name.lower()
-        result = []
-        for x in self.book_list:
-            auth = x.author.lower()
-            if auth == tempname:
-                result.append(x)
-
-        if len(result) ==0:
-            raise searchError("No book retirieved")
-        return result 
-
-    def search_by_year(self, year: int):
-        result = []
-        for x in self.book_list:
-            if x.publishing_date.year == year:
-                result.append(x)
-        
-        if len(result) == 0:
-            raise searchError("No book retirieved")
+    def getBook_by_Author(self, author: str):
+        cursor = self.connection.cursor()
+        cursor.execute("select * from Books where Author = ?", (author,))
+        result = cursor.fetchall()
+        if not result:
+            raise BookRetrivalError(f"The book by the Author {author} can not be found")
+        cursor.close()
         return result
 
     def __iter__(self):
